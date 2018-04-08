@@ -11,8 +11,7 @@ boidRadius = 3
 
 def main():
     initialise()
-    # mainloop begins at update()
-    mainloop()
+    build_graph()
 
 def initialise():
     global boids
@@ -25,7 +24,6 @@ def initialise():
     boids = []
     for i in range(boidCount):
         boids.append(Boid())
-    build_graph()
 
 def build_graph():
     global graph
@@ -36,6 +34,7 @@ def build_graph():
     graph = Canvas(root, width=windowWidth, height=windowHeight, background='white')
     graph.after(40, update)
     graph.pack()
+    root.mainloop()
 
 def update():
     draw()
@@ -49,7 +48,6 @@ def draw():
         y1 = boid.position.y - boidRadius
         x2 = boid.position.x + boidRadius
         y2 = boid.position.y + boidRadius
-
         graph.create_rectangle((x1, y1, x2, y2), fill='black')
     graph.update()
 
@@ -63,7 +61,7 @@ def moveBoids():
             scatterTime = random.randint(750, 1000)
     if windTime == 0:
         windChance = random.randint(1, 1000)
-        if windChance <= 1:
+        if windChance <= 3:
             windTime = random.randint(750, 1000)
     if foodTime == 0:
         foodChance = random.randint(1, 1000)
@@ -104,23 +102,23 @@ def contain(boid):
     elif boid.position.y > windowHeight - wallForceDepth:
         boid.velocity.y -= wallForce
 
-class TwoD:
+class Vec:
 
     def __init__(self, x, y):
         self.x = float(x)
         self.y = float(y)
 
     def __add__(self, other):
-        return TwoD(self.x + other.x, self.y + other.y)
+        return Vec(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other):
-        return TwoD(self.x - other.x, self.y - other.y)
+        return Vec(self.x - other.x, self.y - other.y)
 
     def __mul__(self, other):
-        return TwoD(self.x * other, self.y * other)
+        return Vec(self.x * other, self.y * other)
 
     def __truediv__(self, other):
-        return TwoD(self.x / other, self.y / other)
+        return Vec(self.x / other, self.y / other)
 
     def __iadd__(self, other):
         self.x += other.x
@@ -147,11 +145,11 @@ class Boid:
     def __init__(self):
         initialVelocityX = random.randint(-1*maxVelocity, maxVelocity)
         initialVelocityY = random.randint(-1*maxVelocity, maxVelocity)
-        self.velocity = TwoD(initialVelocityX, initialVelocityY)
+        self.velocity = Vec(initialVelocityX, initialVelocityY)
 
         initialPositionX = random.randint(0, windowWidth)
         initialPositionY = random.randint(0, windowHeight)
-        self.position = TwoD(initialPositionX, initialPositionY)
+        self.position = Vec(initialPositionX, initialPositionY)
 
         self.perchTime = random.randint(100, 400)
         self.perching = False
@@ -197,7 +195,7 @@ class Boid:
     '''
     def rule1(self):
         boidsActive = 0
-        vector = TwoD(0, 0)
+        vector = Vec(0, 0)
         for boid in boids:
             if boid is not self and boid.perching == False:
                 vector += boid.position
@@ -212,7 +210,7 @@ class Boid:
     neighbors.
     '''
     def rule2(self):
-        vector = TwoD(0, 0)
+        vector = Vec(0, 0)
         for boid in boids:
             if boid is not self and boid.perching == False:
                 if (boid.position - self.position).magnitude() < 6*boidRadius:
@@ -227,7 +225,7 @@ class Boid:
     '''
     def rule3(self):
         boidsActive = 0
-        vector = TwoD(0, 0)
+        vector = Vec(0, 0)
         for boid in boids:
             if boid is not self and boid.perching == False:
                 vector += boid.velocity
@@ -242,7 +240,7 @@ class Boid:
     def wind(self, windBool):
         if windBool:
             graph.create_rectangle((windowWidth / 2 - 10, windowHeight / 2 - 1, windowWidth / 2 + 10, windowHeight / 2 + 1), fill='red')
-        windVector = TwoD(1, 0)
+        windVector = Vec(1, 0)
         return windVector
 
     # Food
@@ -253,7 +251,7 @@ class Boid:
     def food(self, foodBool):
         if foodBool:
             graph.create_rectangle((windowWidth / 2 - boidRadius, windowHeight / 2 - boidRadius, windowWidth / 2 + boidRadius, windowHeight / 2 + boidRadius), fill='red')
-        foodVector = TwoD(windowWidth / 2, windowHeight / 2)
+        foodVector = Vec(windowWidth / 2, windowHeight / 2)
         return (foodVector - self.position) / 5
 
 main()
